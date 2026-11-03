@@ -48,14 +48,14 @@ def reasoner(relation,dir,inference_mode='MAP',bing_evidence=True):
     claims_file=dir+'claims.txt'
 
 
-    with open(claims_file,'r') as f:
+    with open(claims_file,'r', encoding='utf-8', errors='replace') as f:
         lines=f.readlines()
 
     s=time.time()
 
 
 
-    with open(dir+result_csv_file,'w') as csvFile:
+    with open(dir+result_csv_file,'w', encoding='utf-8', newline='') as csvFile:
         writer=csv.writer(csvFile)
         writer.writerow(['Id','Subject','Object','Label','Predicted Label','Execution Time (mins)'])
     csvFile.close()
@@ -63,7 +63,10 @@ def reasoner(relation,dir,inference_mode='MAP',bing_evidence=True):
 
     for line in lines[:]:
 
-        subprocess.run('killall -9 clingo',shell=True)
+        try:
+            subprocess.run('taskkill /F /IM clingo.exe', shell=True, check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        except Exception:
+            pass
     #    subprocess.run('killall -9 python',shell=True)
 
 
@@ -91,7 +94,7 @@ def reasoner(relation,dir,inference_mode='MAP',bing_evidence=True):
         try:
             subprocess.run(cmd, timeout=300,shell=True)
 
-            with open(temp_file,'r') as f:
+            with open(temp_file,'r', encoding='utf-8', errors='replace') as f:
                 temp=f.readlines()
 
             p=n=0
@@ -154,7 +157,7 @@ def reasoner(relation,dir,inference_mode='MAP',bing_evidence=True):
                  KilledN+=1
                  KN.append(id)
         claim.append(str(time.time()-start))
-        with open(dir+result_csv_file,'a') as csvFile:
+        with open(dir+result_csv_file,'a', encoding='utf-8', newline='') as csvFile:
             writer=csv.writer(csvFile)
             writer.writerow(claim)
         csvFile.close()

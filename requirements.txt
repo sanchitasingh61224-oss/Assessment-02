@@ -1,0 +1,11 @@
+clingo>=5.8.0
+numpy
+pandas
+scipy
+matplotlib
+networkx
+requests
+sympy
+ply
+ipdb
+SPARQLWrapper

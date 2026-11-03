@@ -9,8 +9,8 @@ def get_relation(predicate):
 
 
 def get_rule_dict(filename,relation):
-    f=open(filename,'r')
-    lines=f.readlines()
+    with open(filename,'r', encoding='utf-8', errors='replace') as f:
+        lines=f.readlines()
 
     pr_dict={}
     nr_dict={}
@@ -54,20 +54,20 @@ def map_weight_rule_dict(rule_dict):
 
 def write_rule_dict(rule_dict,filename,inference_mode):
     pr_dict,nr_dict,constraint=rule_dict
-    f=open(filename,'w')
-    for k,v in pr_dict.items():
-            if('MAP' in inference_mode):
-                f.write(str(v)+"  "+k)
-            if('ASP' in inference_mode):
-                f.write(k)
-    f.write('\n')
-    f.write(constraint)
-    f.write('\n')
-    for k,v in nr_dict.items():
-            if('MAP' in inference_mode):
-                f.write(str(v)+"  "+k)
-            if('ASP' in inference_mode):
-                f.write(k)
+    with open(filename,'w', encoding='utf-8') as f:
+        for k,v in pr_dict.items():
+                if('MAP' in inference_mode):
+                    f.write(str(v)+"  "+k)
+                if('ASP' in inference_mode):
+                    f.write(k)
+        f.write('\n')
+        f.write(constraint)
+        f.write('\n')
+        for k,v in nr_dict.items():
+                if('MAP' in inference_mode):
+                    f.write(str(v)+"  "+k)
+                if('ASP' in inference_mode):
+                    f.write(k)
 
 
 

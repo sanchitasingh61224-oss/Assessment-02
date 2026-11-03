@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.vscode/
+*.log
+ASP.txt
+Results/spouse/Experiments/random_claims_NO_BING_ASP_0_1_20261103-123352/

@@ -1,59 +1,153 @@
-# ExpClaim
+# Explainable Fact Checking with Probabilistic Answer Set Programming
 
+This project is a research prototype for checking whether a fact is likely true or false, and explaining the reason using logic-based rules and evidence.
 
-ExpClaim tackles the problem of fact checking for facts (claims) passed as triples.
-It uses external resources and logical rules to create interpretable explanations of its assessement of an input claim.
+The repository is based on the paper:
+[Explainable Fact Checking with Probabilistic Answer Set Programming](https://arxiv.org/abs/1906.09198)
 
-This repository contains the code used for the experiments in the paper [Explainable Fact Checking with Probabilistic Answer Set Programming](https://arxiv.org/abs/1906.09198)
+## What this project does
 
-### Installation
+In simple words, the system:
 
-ExpClaim requires python 3 to run.
-[Conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/) should also be installed.
+- reads a relation such as `spouse`, `almaMater`, or `vicePresident`
+- loads logic rules from the `Results` folder
+- generates claims from a set of examples
+- gathers supporting evidence from DBpedia and optionally Bing
+- runs probabilistic ASP inference
+- writes a result CSV and summary statistics for each experiment
 
-```sh
-$ git clone https://github.com/ppapotti/ExpClaim.git
-$ cd expclaim
-$ conda create -y -n expclaim python=3.6
-$ conda activate expclaim
+The goal is not just to say “true” or “false”, but to show which rule and evidence led to the decision.
 
-$(expclaim) bash install.sh
+## Project structure
+
+- `main.py` – entry script
+- `processor.py` – loads arguments and runs the solver
+- `scripts/` – utilities for claim generation, evidence retrieval, and inference
+- `Results/` – rule files and experiment results
+- `claims/` – claim datasets by relation
+- `bing_caches/` – stored Bing evidence cache
+
+## Setup on Windows
+
+This project originally targeted older Python and Unix-style tooling, so we updated the code to work more reliably with modern Python and Windows file handling.
+
+### 1) Install Miniforge / Conda
+
+Install Miniforge from:
+https://github.com/conda-forge/miniforge/releases
+
+Then open a terminal and create the environment:
+
+```powershell
+C:\Users\sanch\miniforge3\condabin\conda.bat create -y -n expclaim python=3.11
+C:\Users\sanch\miniforge3\condabin\conda.bat activate expclaim
 ```
 
+### 2) Install dependencies
 
-
-
-### Running the test
-```sh
-$ python scripts/test.py --relation spouse  --num_claims 2 --bing_evidence 0 --inference_mode 'ASP'
+```powershell
+python -m pip install -r requirements.txt
 ```
-* --relation: specifies which predicate to use
-* --rule_threshold: specifies the threshold for the weights of the rules
-* --MF: multiplicative factor for the weights
-* --claim_gen_mode: There are two ways for generating claims: 1)'random' which generates claims randomly 2)'grounded' which ensures that each claim has at least one satisfied rule.
-* --num_claims: The number of claims to use
-* --bing_evidence: If set to 1,then use evidence from bing web module. If set to 0, then just use knowledge base evidence.
-* --bing_evid_thresh: specifies the threshold for the weights of the bing evidence
-* --inference_mode: specifies the onference algorithm used.('ASP' or 'MAP')
 
-Inside each experiment directory, you will have a csv file containing the result for each claim and another csv file showing the F_score.
+If needed, the project dependencies are:
 
+- clingo
+- numpy
+- pandas
+- scipy
+- matplotlib
+- networkx
+- requests
+- sympy
+- ply
+- ipdb
+- SPARQLWrapper
 
+## Run the project
 
-### Using Web Evidence
+The repository’s sample command is:
 
-To use web evidence, you will need to subscribe to the [Bing Search API](https://azure.microsoft.com/en-us/services/cognitive-services/bing-web-search-api/).
-Once you do, you will get a key that should be inserted in "config.properties".
+```powershell
+cd C:\Users\sanch\expclaim
+python scripts/test.py --relation spouse --num_claims 2 --bing_evidence 0 --inference_mode ASP
+```
 
+### Explanation of the arguments
 
-### Contacts
+- `--relation`: relation to use, such as `spouse`, `almaMater`, or `deathPlace`
+- `--num_claims`: number of claims to evaluate
+- `--bing_evidence`: `0` uses KB-only evidence, `1` adds Bing evidence
+- `--inference_mode`: `ASP` or `MAP`
 
-For any inquiries, click [here](mailto:saeedm@eurecom.fr,ahmadi@eurecom.fr,paolo.papotti@eurecom.fr)
+## Expected output
 
-### License
-[MIT](https://choosealicense.com/licenses/mit/)
+The project writes output inside folders like:
 
+- `Results/spouse/Experiments/.../ASP_results.csv`
+- `Results/spouse/Experiments/.../ASP_stats.txt`
 
+A sample result file looks like this:
 
+```csv
+Id,Subject,Object,Label,Predicted Label,Execution Time (mins)
+1433,Victoria_Hislop,Ian_Hislop,1,UNSATISFIABLE,0.2172391414642334
+2562,Carolina_Benedicks-Bruce,William_Blair_Bruce,1,1,0.03366851806640625
+```
 
+A summary file looks like this:
+
+```text
+True Positives: 25/43
+True Negatives: 18/58
+Precision :1.0
+Recall :0.4257422517403448
+F_score :0.5970436211355723
+```
+
+This means the system predicted some claims correctly, while some remained uncertain (`Can't Decide`) or unsatisfied.
+
+## Important notes
+
+- The project uses live DBpedia/SPARQL queries during evidence generation.
+- If Bing evidence is enabled, you also need a Bing API key and configuration in the Bing module.
+- The project may take time to finish when it queries external sources.
+- The code was updated to avoid the Windows/UTF-8 crash caused by default encoding and the Unix-only `killall` behavior.
+
+## Screenshots
+
+Add screenshots of:
+
+1. the environment creation
+2. the dependency installation
+3. the sample command running
+4. the generated result CSV and summary file
+
+Example placeholder:
+
+```text
+![Environment setup](docs/setup.png)
+![Running experiment](docs/run.png)
+![Results summary](docs/results.png)
+```
+
+## GitHub push steps
+
+Once the project works locally:
+
+```powershell
+git init
+git add .
+git commit -m "ExpClaim setup and compatibility fixes"
+git branch -M main
+git remote add origin https://github.com/yourusername/your-repo.git
+git push -u origin main
+```
+
+## License
+
+MIT
+
+## Contacts
+
+Original project contact information is included in the source repository and paper link.
 

@@ -221,13 +221,13 @@ def generate_evid_KB_grounded(rules_file,claims_file,dir,evid_dir,N=100):
 
 
 
-    with open(rules_file,'r') as f:
+    with open(rules_file,'r', encoding='utf-8', errors='replace') as f:
         rules=f.readlines()
 
     num_pos=0
     num_neg=0
     clm=[]
-    with open(claims_file,'r') as f:
+    with open(claims_file,'r', encoding='utf-8', errors='replace') as f:
         lines=f.readlines()
     for line in lines[:]:
         print("############################################")
@@ -342,10 +342,10 @@ def generate_evid_KB_random(rules_file,claims_file,dir,evid_dir,N=100):
 
 
 
-    with open(rules_file,'r') as f:
+    with open(rules_file,'r', encoding='utf-8', errors='replace') as f:
         rules=f.readlines()
 
-    with open(claims_file,'r') as f:
+    with open(claims_file,'r', encoding='utf-8', errors='replace') as f:
         lines=f.readlines()
 
 
