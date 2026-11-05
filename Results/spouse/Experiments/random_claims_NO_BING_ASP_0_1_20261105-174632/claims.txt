@@ -1,0 +1,4 @@
+740,Warren_Murphy,Nancy_Cartwright,1
+3090,Prince_Frederick_of_Hesse-Kassel,Princess_Caroline_of_Nassau-Usingen,1
+6447,Saint_Margaret_of_Scotland,Alexander_I_of_Scotland,0
+7553,Hugh_Shearer,Elizabeth_II,0

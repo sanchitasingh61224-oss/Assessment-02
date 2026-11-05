@@ -1,0 +1,4 @@
+3577,Jerry_Trimble,Ami_Dolenz,1
+4109,Michael_III,Eudokia_Dekapolitissa,1
+7265,Margaret_of_Hungary,Agnes_of_Antioch,0
+8372,Valdemar_I_of_Denmark,Canute_VI_of_Denmark,0
