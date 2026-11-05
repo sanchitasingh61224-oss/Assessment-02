@@ -1,0 +1,4 @@
+2760,Yaroslav_the_Wise,Olof_Skötkonung,1
+3348,Keira_Knightley,James_Righton,1
+7338,Osburh,Æthelbald_of_Wessex,0
+9584,Princess_Maria_Antonia_of_Naples_and_Sicily,Maria_Carolina_of_Austria,0

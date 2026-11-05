@@ -1,0 +1,4 @@
+3115,Sam_Nazarian,Emina_Cunmulaj,1
+4199,Edgar_Linton,Catherine_Earnshaw,1
+7559,Henry_VI_of_England,Edward_IV_of_England,0
+7609,Charles_X_Gustav_of_Sweden,Charles_XI_of_Sweden,0

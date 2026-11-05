@@ -1,7 +1,10 @@
 
 
 import re,csv,subprocess,json,os
-from utils import *
+try:
+    from .utils import *
+except ImportError:  # pragma: no cover - direct script execution fallback
+    from utils import *
 
 
 

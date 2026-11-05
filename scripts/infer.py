@@ -1,11 +1,21 @@
-from rule_reading_functions import *
-from get_evidence import *
-from get_rules import *
-from import_evid import *
-from bing_evid import *
-from inference import *
-from get_model_evid import *
-from get_bing_evid import *
+try:
+    from .rule_reading_functions import *
+    from .get_evidence import *
+    from .get_rules import *
+    from .import_evid import *
+    from .bing_evid import *
+    from .inference import *
+    from .get_model_evid import *
+    from .get_bing_evid import *
+except ImportError:  # pragma: no cover - direct script execution fallback
+    from rule_reading_functions import *
+    from get_evidence import *
+    from get_rules import *
+    from import_evid import *
+    from bing_evid import *
+    from inference import *
+    from get_model_evid import *
+    from get_bing_evid import *
 import time
 
 

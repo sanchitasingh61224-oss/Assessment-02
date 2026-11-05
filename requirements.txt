@@ -9,3 +9,4 @@ sympy
 ply
 ipdb
 SPARQLWrapper
+pytest

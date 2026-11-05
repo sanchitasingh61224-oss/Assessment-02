@@ -1,6 +1,12 @@
 import re,csv,subprocess,random,math,os
-from justifying_rules import *
-from utils import *
+try:
+    from .justifying_rules import *
+except ImportError:  # pragma: no cover - direct script execution fallback
+    from justifying_rules import *
+try:
+    from .utils import *
+except ImportError:  # pragma: no cover - direct script execution fallback
+    from utils import *
 import time
 
 

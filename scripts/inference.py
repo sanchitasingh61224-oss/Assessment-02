@@ -1,7 +1,27 @@
+import csv
+import os
+import shutil
 import subprocess
-import time,csv
+import sys
+import time
 
 
+def _resolve_clingo_executable():
+    clingo = shutil.which('clingo')
+    if clingo:
+        return clingo
+
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    candidates = [
+        os.path.join(repo_root, 'lpmln_infer', 'clingo', 'bin', 'clingo'),
+        os.path.join(repo_root, 'lpmln_infer', 'clingo', 'bin', 'clingo.exe'),
+        os.path.join(repo_root, 'lpmln_infer', 'binSupport', 'clingo'),
+        os.path.join(repo_root, 'lpmln_infer', 'binSupport', 'clingo.exe'),
+    ]
+    for candidate in candidates:
+        if os.path.exists(candidate):
+            return candidate
+    return 'clingo'
 
 
 def reasoner(relation,dir,inference_mode='MAP',bing_evidence=True):
@@ -64,7 +84,7 @@ def reasoner(relation,dir,inference_mode='MAP',bing_evidence=True):
     for line in lines[:]:
 
         try:
-            subprocess.run('taskkill /F /IM clingo.exe', shell=True, check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.run(['taskkill', '/F', '/IM', 'clingo.exe'], shell=False, check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         except Exception:
             pass
     #    subprocess.run('killall -9 python',shell=True)
@@ -73,28 +93,31 @@ def reasoner(relation,dir,inference_mode='MAP',bing_evidence=True):
         claim=[]
         print(line)
         id,subject,object,label=line.strip().split(',')
-        relation='spouse'
         pos_claim=relation+'('+'"'+subject+'"'+','+'"'+object+'"'+')'
         neg_claim='neg'+pos_claim
         claim.extend([id,subject,object,label])
         start=time.time()
         if(inference_mode=='ASP'):
             if(bing_evidence==False):
-                cmd='clingo '+dir+'ASP_NO_BING_EVID_Evidence/'+id+'er_unique.txt >ASP.txt'
+                input_file=os.path.join(dir,'ASP_NO_BING_EVID_Evidence',id+'er_unique.txt')
             else:
-                cmd='clingo '+dir+'ASP_WITH_BING_EVID_Evidence/'+id+'er_unique.txt >ASP.txt'
-
+                input_file=os.path.join(dir,'ASP_WITH_BING_EVID_Evidence',id+'er_unique.txt')
+            solver_cmd=[_resolve_clingo_executable(), input_file]
+            output_path=os.path.join(dir, temp_file)
         if(inference_mode=='MAP'):
             if(bing_evidence==False):
-                cmd='python main.py -i '+dir+'MAP_NO_BING_EVID_Evidence/'+id+'er_unique.txt >MAP.txt'
+                input_file=os.path.join(dir,'MAP_NO_BING_EVID_Evidence',id+'er_unique.txt')
             else:
-                cmd='python main.py -i '+dir+'MAP_WITH_BING_EVID_Evidence/'+id+'er_unique.txt >MAP.txt'
+                input_file=os.path.join(dir,'MAP_WITH_BING_EVID_Evidence',id+'er_unique.txt')
+            solver_cmd=[sys.executable, os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')), 'main.py'), '-i', input_file]
+            output_path=os.path.join(dir, temp_file)
 
-        print(cmd)
+        print(solver_cmd)
         try:
-            subprocess.run(cmd, timeout=300,shell=True)
+            with open(output_path, 'w', encoding='utf-8', errors='replace') as out_file:
+                subprocess.run(solver_cmd, timeout=300, stdout=out_file, stderr=subprocess.STDOUT, shell=False)
 
-            with open(temp_file,'r', encoding='utf-8', errors='replace') as f:
+            with open(output_path,'r', encoding='utf-8', errors='replace') as f:
                 temp=f.readlines()
 
             p=n=0

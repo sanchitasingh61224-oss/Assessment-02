@@ -1,6 +1,12 @@
 import re
-from rule_reading_functions import *
-from utils import *
+try:
+    from .rule_reading_functions import *
+except ImportError:  # pragma: no cover - direct script execution fallback
+    from rule_reading_functions import *
+try:
+    from .utils import *
+except ImportError:  # pragma: no cover - direct script execution fallback
+    from utils import *
 
 
 

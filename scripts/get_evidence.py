@@ -1,13 +1,108 @@
 import re,os,random,csv,subprocess,json
-from utils import *
-from check_rule_KB import *
+import multiprocessing as mp
+try:
+    from .utils import *
+except ImportError:  # pragma: no cover - direct script execution fallback
+    from utils import *
+try:
+    from .check_rule_KB import *
+except ImportError:  # pragma: no cover - direct script execution fallback
+    from check_rule_KB import *
 
 
 
 
 from SPARQLWrapper import SPARQLWrapper, JSON
 
-sparql = SPARQLWrapper("http://dbpedia.org/sparql")
+import hashlib
+
+QUERY_TIMEOUT_SECONDS = 10
+
+CACHE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "dbpedia_cache")
+os.makedirs(CACHE_DIR, exist_ok=True)
+
+ENDPOINTS = (
+    "https://dbpedia.org/sparql",
+    "http://dbpedia.org/sparql",
+)
+
+
+def _cache_path_for_query(query):
+    digest = hashlib.sha256(query.encode("utf-8")).hexdigest()
+    return os.path.join(CACHE_DIR, digest + ".json")
+
+
+def _read_cache(query):
+    cache_path = _cache_path_for_query(query)
+    if not os.path.exists(cache_path):
+        return None
+    try:
+        with open(cache_path, "r", encoding="utf-8") as fh:
+            return json.load(fh)
+    except (OSError, ValueError):
+        return None
+
+
+def _write_cache(query, payload):
+    cache_path = _cache_path_for_query(query)
+    with open(cache_path, "w", encoding="utf-8") as fh:
+        json.dump(payload, fh, ensure_ascii=False)
+
+
+def _sparql_worker(endpoint, query, queue_obj):
+    try:
+        sparql = SPARQLWrapper(endpoint)
+        sparql.setTimeout(QUERY_TIMEOUT_SECONDS)
+        sparql.setQuery(query)
+        sparql.setReturnFormat(JSON)
+        results = sparql.query().convert()
+        bindings = results.get("results", {}).get("bindings", [])
+        queue_obj.put({"bindings": bindings})
+    except Exception as exc:  # pragma: no cover - defensive fallback
+        queue_obj.put({"error": repr(exc)})
+
+
+def _execute_query_with_timeout(endpoint, query):
+    ctx = mp.get_context("spawn")
+    queue_obj = ctx.Queue()
+    proc = ctx.Process(target=_sparql_worker, args=(endpoint, query, queue_obj))
+    proc.start()
+    proc.join(QUERY_TIMEOUT_SECONDS)
+    if proc.is_alive():
+        proc.terminate()
+        proc.join(1)
+        raise TimeoutError(f"DBpedia query timed out after {QUERY_TIMEOUT_SECONDS}s for {endpoint}")
+    if queue_obj.empty():
+        raise RuntimeError(f"DBpedia worker returned no response for {endpoint}")
+    payload = queue_obj.get()
+    if "error" in payload:
+        raise RuntimeError(payload["error"])
+    return payload["bindings"]
+
+
+def _execute_sparql_query(query):
+    cached = _read_cache(query)
+    if cached is not None:
+        return cached
+
+    last_error = None
+    for endpoint in ENDPOINTS:
+        try:
+            bindings = _execute_query_with_timeout(endpoint, query)
+            if bindings:
+                _write_cache(query, bindings)
+                return bindings
+            last_error = RuntimeError("DBpedia returned no bindings")
+        except Exception as exc:  # pragma: no cover - defensive fallback
+            last_error = exc
+            continue
+
+    if last_error is not None:
+        print(f"DBpedia query failed after retries: {type(last_error).__name__}: {last_error}")
+    return []
+
+
+sparql = SPARQLWrapper("https://dbpedia.org/sparql")
 
 
 
@@ -66,40 +161,26 @@ def get_evidence(resource, rules):
             #print(query)
  #           print(type(query))
 
-            sparql.setQuery(query)
-            sparql.setReturnFormat('json')
-
-
+            q1_values=[]
             try:
-                results = sparql.query().convert()
-                #print(query)
-                res=[]
-                for result in results["results"]["bindings"]:
+                results = _execute_sparql_query(query)
+                for result in results:
                     s=[]
                     for key in result.keys():
                         s.append(result[key]['value'])
-                    res.append(s)
-
-                q1_values = res
-            except:
+                    q1_values.append(s)
+            except Exception:
                 q1_values=[]
 
-
-            sparql.setQuery(query2)
-            sparql.setReturnFormat('json')
-
-
+            q2_values=[]
             try:
-                results = sparql.query().convert()
-                res=[]
-                for result in results["results"]["bindings"]:
+                results = _execute_sparql_query(query2)
+                for result in results:
                     s=[]
                     for key in result.keys():
                         s.append(result[key]['value'])
-                    res.append(s)
-
-                q2_values = res
-            except:
+                    q2_values.append(s)
+            except Exception:
                 q2_values=[]
             if q1_values:
                 #print("Q1 values",q1_values)
@@ -137,19 +218,15 @@ def get_type_sub_obj(resource):
     }'''
 
 
-        sparql.setQuery(query1)
-        sparql.setReturnFormat('json')
-
+        q1_values=[]
         try:
-            results = sparql.query().convert()
-            res=[]
-            for result in results["results"]["bindings"]:
+            results = _execute_sparql_query(query1)
+            for result in results:
                 s=[]
                 for key in result.keys():
                     s.append(result[key]['value'])
-                res.append(s)
-            q1_values = res
-        except:
+                q1_values.append(s)
+        except Exception:
             q1_values=[]
         if q1_values:
             for vals in q1_values:
@@ -167,20 +244,15 @@ def get_type_sub_obj(resource):
     }'''
 
 
-        sparql.setQuery(query2)
-        sparql.setReturnFormat('json')
-
+        q2_values=[]
         try:
-            results = sparql.query().convert()
-            res=[]
-            for result in results["results"]["bindings"]:
+            results = _execute_sparql_query(query2)
+            for result in results:
                 s=[]
                 for key in result.keys():
                     s.append(result[key]['value'])
-                res.append(s)
-            q2_values = res
-
-        except:
+                q2_values.append(s)
+        except Exception:
             q2_values=[]
         #print(resource[j],q2_values)
         if q2_values:

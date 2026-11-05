@@ -1,4 +1,7 @@
-from infer import *
+try:
+    from .infer import *
+except ImportError:  # pragma: no cover - direct script execution fallback
+    from infer import *
 import argparse
 
 
